@@ -1,0 +1,340 @@
+date,home_team,hxg,axg,away_team
+2024-08-23,Gladbach,1.6,2.7,Leverkusen
+2024-08-24,Hoffenheim,3.5,1.7,Holstein Kiel
+2024-08-24,Mainz 05,1.2,0.6,Union Berlin
+2024-08-24,Augsburg,1.0,1.4,Werder Bremen
+2024-08-24,Freiburg,2.1,0.4,Stuttgart
+2024-08-24,RB Leipzig,1.3,1.0,Bochum
+2024-08-24,Dortmund,1.7,1.4,Eint Frankfurt
+2024-08-25,Wolfsburg,1.9,2.4,Bayern Munich
+2024-08-25,St. Pauli,1.2,1.1,Heidenheim
+,,,,
+2024-08-30,Union Berlin,1.1,0.5,St. Pauli
+2024-08-31,Werder Bremen,0.3,0.6,Dortmund
+2024-08-31,Eint Frankfurt,2.4,1.0,Hoffenheim
+2024-08-31,Bochum,0.7,2.9,Gladbach
+2024-08-31,Holstein Kiel,1.1,1.3,Wolfsburg
+2024-08-31,Stuttgart,3.8,2.3,Mainz 05
+2024-08-31,Leverkusen,2.2,1.1,RB Leipzig
+2024-09-01,Heidenheim,3.1,0.7,Augsburg
+2024-09-01,Bayern Munich,1.5,1.0,Freiburg
+,,,,
+2024-09-13,Dortmund,2.6,1.8,Heidenheim
+2024-09-14,RB Leipzig,1.3,0.6,Union Berlin
+2024-09-14,Gladbach,1.6,2.2,Stuttgart
+2024-09-14,Freiburg,3.7,0.9,Bochum
+2024-09-14,Wolfsburg,1.5,2.5,Eint Frankfurt
+2024-09-14,Hoffenheim,0.9,3.5,Leverkusen
+2024-09-14,Holstein Kiel,0.3,3.2,Bayern Munich
+2024-09-15,Augsburg,2.7,0.5,St. Pauli
+2024-09-15,Mainz 05,1.1,1.6,Werder Bremen
+,,,,
+2024-09-20,Augsburg,2.4,1.0,Mainz 05
+2024-09-21,Union Berlin,1.2,0.4,Hoffenheim
+2024-09-21,Bochum,0.8,1.9,Holstein Kiel
+2024-09-21,Heidenheim,0.7,1.4,Freiburg
+2024-09-21,Werder Bremen,0.0,3.0,Bayern Munich
+2024-09-21,Eint Frankfurt,2.7,1.7,Gladbach
+2024-09-22,Leverkusen,1.9,0.7,Wolfsburg
+2024-09-22,Stuttgart,3.4,0.7,Dortmund
+2024-09-22,St. Pauli,1.4,0.7,RB Leipzig
+,,,,
+2024-09-27,Dortmund,3.2,1.3,Bochum
+2024-09-28,Mainz 05,0.6,1.2,Heidenheim
+2024-09-28,Freiburg,1.2,1.1,St. Pauli
+2024-09-28,RB Leipzig,3.0,1.1,Augsburg
+2024-09-28,Gladbach,0.9,0.7,Union Berlin
+2024-09-28,Wolfsburg,1.1,1.8,Stuttgart
+2024-09-28,Bayern Munich,1.4,0.1,Leverkusen
+2024-09-29,Holstein Kiel,1.1,2.1,Eint Frankfurt
+2024-09-29,Hoffenheim,1.2,2.9,Werder Bremen
+,,,,
+2024-10-04,Augsburg,1.3,0.5,Gladbach
+2024-10-05,Bochum,1.7,2.4,Wolfsburg
+2024-10-05,Union Berlin,1.5,0.7,Dortmund
+2024-10-05,Werder Bremen,1.0,1.0,Freiburg
+2024-10-05,Leverkusen,2.1,1.6,Holstein Kiel
+2024-10-05,St. Pauli,1.0,1.1,Mainz 05
+2024-10-06,Heidenheim,1.0,1.4,RB Leipzig
+2024-10-06,Eint Frankfurt,1.2,2.2,Bayern Munich
+2024-10-06,Stuttgart,1.9,0.9,Hoffenheim
+,,,,
+2024-10-18,Dortmund,2.6,0.6,St. Pauli
+2024-10-19,Leverkusen,3.8,1.9,Eint Frankfurt
+2024-10-19,Mainz 05,0.6,1.9,RB Leipzig
+2024-10-19,Freiburg,0.8,0.6,Augsburg
+2024-10-19,Hoffenheim,2.5,2.7,Bochum
+2024-10-19,Gladbach,3.6,2.0,Heidenheim
+2024-10-19,Bayern Munich,3.2,0.5,Stuttgart
+2024-10-20,Holstein Kiel,1.3,1.1,Union Berlin
+2024-10-20,Wolfsburg,1.8,2.0,Werder Bremen
+,,,,
+2024-10-25,Mainz 05,1.7,0.7,Gladbach
+2024-10-26,St. Pauli,0.8,1.1,Wolfsburg
+2024-10-26,Stuttgart,1.6,0.5,Holstein Kiel
+2024-10-26,Augsburg,0.6,1.0,Dortmund
+2024-10-26,RB Leipzig,1.8,1.7,Freiburg
+2024-10-26,Werder Bremen,1.6,1.3,Leverkusen
+2024-10-27,Bochum,0.6,2.2,Bayern Munich
+2024-10-27,Union Berlin,1.4,1.5,Eint Frankfurt
+2024-10-27,Heidenheim,1.5,0.7,Hoffenheim
+,,,,
+2024-11-01,Leverkusen,2.2,0.3,Stuttgart
+2024-11-02,Wolfsburg,1.2,0.5,Augsburg
+2024-11-02,Bayern Munich,2.5,0.5,Union Berlin
+2024-11-02,Eint Frankfurt,3.5,1.8,Bochum
+2024-11-02,Holstein Kiel,1.1,1.2,Heidenheim
+2024-11-02,Hoffenheim,0.7,0.9,St. Pauli
+2024-11-02,Dortmund,2.0,0.5,RB Leipzig
+2024-11-03,Freiburg,0.8,0.5,Mainz 05
+2024-11-03,Gladbach,2.5,1.4,Werder Bremen
+,,,,
+2024-11-08,Union Berlin,0.7,1.7,Freiburg
+2024-11-09,Bochum,0.7,1.2,Leverkusen
+2024-11-09,Werder Bremen,1.7,0.7,Holstein Kiel
+2024-11-09,Mainz 05,2.0,0.9,Dortmund
+2024-11-09,St. Pauli,0.1,0.8,Bayern Munich
+2024-11-09,RB Leipzig,1.0,0.9,Gladbach
+2024-11-10,Augsburg,0.9,0.5,Hoffenheim
+2024-11-10,Stuttgart,2.5,1.3,Eint Frankfurt
+2024-11-10,Heidenheim,2.4,1.5,Wolfsburg
+,,,,
+2024-11-22,Bayern Munich,3.7,0.1,Augsburg
+2024-11-23,Wolfsburg,0.6,0.5,Union Berlin
+2024-11-23,Leverkusen,2.2,1.1,Heidenheim
+2024-11-23,Hoffenheim,2.0,1.6,RB Leipzig
+2024-11-23,Stuttgart,1.7,0.7,Bochum
+2024-11-23,Dortmund,1.3,0.8,Freiburg
+2024-11-23,Eint Frankfurt,1.1,0.4,Werder Bremen
+2024-11-24,Holstein Kiel,0.4,2.2,Mainz 05
+2024-11-24,Gladbach,2.3,1.1,St. Pauli
+,,,,
+2024-11-29,St. Pauli,1.3,1.2,Holstein Kiel
+2024-11-30,RB Leipzig,1.0,2.2,Wolfsburg
+2024-11-30,Freiburg,1.6,1.5,Gladbach
+2024-11-30,Union Berlin,0.7,0.9,Leverkusen
+2024-11-30,Werder Bremen,1.6,1.8,Stuttgart
+2024-11-30,Augsburg,1.9,0.3,Bochum
+2024-11-30,Dortmund,0.6,1.5,Bayern Munich
+2024-12-01,Mainz 05,2.2,0.4,Hoffenheim
+2024-12-01,Heidenheim,0.7,2.6,Eint Frankfurt
+,,,,
+2024-12-06,Stuttgart,2.1,1.4,Union Berlin
+2024-12-07,Bochum,1.2,0.8,Werder Bremen
+2024-12-07,Holstein Kiel,1.2,1.6,RB Leipzig
+2024-12-07,Leverkusen,0.9,1.8,St. Pauli
+2024-12-07,Eint Frankfurt,1.7,0.6,Augsburg
+2024-12-07,Bayern Munich,2.4,1.3,Heidenheim
+2024-12-07,Gladbach,1.1,1.5,Dortmund
+2024-12-08,Wolfsburg,1.2,2.6,Mainz 05
+2024-12-08,Hoffenheim,1.4,1.0,Freiburg
+,,,,
+2024-12-13,Freiburg,2.1,1.8,Wolfsburg
+2024-12-14,Augsburg,0.6,0.8,Leverkusen
+2024-12-14,Mainz 05,1.0,1.4,Bayern Munich
+2024-12-14,Union Berlin,2.5,1.0,Bochum
+2024-12-14,Gladbach,2.4,0.6,Holstein Kiel
+2024-12-14,St. Pauli,0.6,1.0,Werder Bremen
+2024-12-15,Heidenheim,1.0,2.3,Stuttgart
+2024-12-15,Dortmund,0.5,1.0,Hoffenheim
+2024-12-15,RB Leipzig,1.9,0.9,Eint Frankfurt
+,,,,
+2024-12-20,Bayern Munich,3.3,0.4,RB Leipzig
+2024-12-21,Werder Bremen,2.3,1.3,Union Berlin
+2024-12-21,Eint Frankfurt,2.4,0.6,Mainz 05
+2024-12-21,Stuttgart,2.1,2.2,St. Pauli
+2024-12-21,Hoffenheim,3.5,0.7,Gladbach
+2024-12-21,Holstein Kiel,1.7,1.5,Augsburg
+2024-12-21,Leverkusen,2.8,0.7,Freiburg
+2024-12-22,Bochum,1.6,0.6,Heidenheim
+2024-12-22,Wolfsburg,1.5,2.7,Dortmund
+,,,,
+2025-01-10,Dortmund,1.3,1.6,Leverkusen
+2025-01-11,Mainz 05,1.9,0.6,Bochum
+2025-01-11,St. Pauli,2.2,1.5,Eint Frankfurt
+2025-01-11,Heidenheim,1.4,1.1,Union Berlin
+2025-01-11,Freiburg,0.7,1.8,Holstein Kiel
+2025-01-11,Hoffenheim,0.9,0.7,Wolfsburg
+2025-01-11,Gladbach,0.4,4.3,Bayern Munich
+2025-01-12,RB Leipzig,2.1,1.5,Werder Bremen
+2025-01-12,Augsburg,0.3,2.4,Stuttgart
+,,,,
+2025-01-14,Holstein Kiel,1.6,1.0,Dortmund
+2025-01-14,Wolfsburg,3.9,1.1,Gladbach
+2025-01-14,Leverkusen,1.8,0.7,Mainz 05
+2025-01-14,Eint Frankfurt,2.4,0.5,Freiburg
+2025-01-15,Bochum,1.4,0.7,St. Pauli
+2025-01-15,Union Berlin,0.8,1.2,Augsburg
+2025-01-15,Stuttgart,2.5,1.0,RB Leipzig
+2025-01-15,Werder Bremen,1.5,1.4,Heidenheim
+2025-01-15,Bayern Munich,3.4,0.2,Hoffenheim
+,,,,
+2025-01-17,Eint Frankfurt,1.7,0.8,Dortmund
+2025-01-18,Holstein Kiel,1.0,0.8,Hoffenheim
+2025-01-18,Heidenheim,0.7,1.9,St. Pauli
+2025-01-18,Bochum,2.7,2.2,RB Leipzig
+2025-01-18,Stuttgart,1.9,0.2,Freiburg
+2025-01-18,Bayern Munich,3.0,0.5,Wolfsburg
+2025-01-18,Leverkusen,2.1,0.6,Gladbach
+2025-01-19,Union Berlin,2.1,1.7,Mainz 05
+2025-01-19,Werder Bremen,1.3,1.2,Augsburg
+,,,,
+2025-01-24,Wolfsburg,2.0,0.2,Holstein Kiel
+2025-01-25,Freiburg,0.3,1.0,Bayern Munich
+2025-01-25,RB Leipzig,0.7,2.4,Leverkusen
+2025-01-25,Dortmund,1.0,1.3,Werder Bremen
+2025-01-25,Augsburg,1.1,1.2,Heidenheim
+2025-01-25,Mainz 05,1.9,1.1,Stuttgart
+2025-01-25,Gladbach,2.3,0.5,Bochum
+2025-01-26,Hoffenheim,2.4,2.4,Eint Frankfurt
+2025-01-26,St. Pauli,1.2,1.1,Union Berlin
+,,,,
+2025-01-31,Werder Bremen,2.5,1.2,Mainz 05
+2025-02-01,Heidenheim,0.6,2.2,Dortmund
+2025-02-01,St. Pauli,0.8,0.3,Augsburg
+2025-02-01,Bayern Munich,3.4,1.8,Holstein Kiel
+2025-02-01,Bochum,1.0,1.7,Freiburg
+2025-02-01,Stuttgart,1.2,2.1,Gladbach
+2025-02-01,Union Berlin,1.3,0.3,RB Leipzig
+2025-02-02,Eint Frankfurt,1.2,1.2,Wolfsburg
+2025-02-02,Leverkusen,1.4,1.9,Hoffenheim
+,,,,
+2025-02-07,Bayern Munich,4.1,0.1,Werder Bremen
+2025-02-08,Freiburg,1.0,0.5,Heidenheim
+2025-02-08,Dortmund,1.4,0.3,Stuttgart
+2025-02-08,Wolfsburg,0.7,1.4,Leverkusen
+2025-02-08,Hoffenheim,1.1,2.8,Union Berlin
+2025-02-08,Mainz 05,1.3,0.3,Augsburg
+2025-02-08,Gladbach,0.4,2.2,Eint Frankfurt
+2025-02-09,Holstein Kiel,1.9,2.3,Bochum
+2025-02-09,RB Leipzig,1.5,0.6,St. Pauli
+,,,,
+2025-02-14,Augsburg,1.0,1.2,RB Leipzig
+2025-02-15,Stuttgart,0.8,1.6,Wolfsburg
+2025-02-15,Union Berlin,2.0,2.1,Gladbach
+2025-02-15,St. Pauli,0.2,1.3,Freiburg
+2025-02-15,Bochum,2.7,2.6,Dortmund
+2025-02-15,Leverkusen,2.0,0.0,Bayern Munich
+2025-02-16,Werder Bremen,1.1,1.4,Hoffenheim
+2025-02-16,Eint Frankfurt,2.5,1.4,Holstein Kiel
+2025-02-16,Heidenheim,0.6,2.0,Mainz 05
+,,,,
+2025-02-21,Freiburg,1.8,1.2,Werder Bremen
+2025-02-22,Mainz 05,1.2,0.8,St. Pauli
+2025-02-22,Wolfsburg,1.6,0.8,Bochum
+2025-02-22,Gladbach,1.0,1.5,Augsburg
+2025-02-22,Holstein Kiel,0.3,1.8,Leverkusen
+2025-02-22,Dortmund,4.8,0.3,Union Berlin
+2025-02-23,RB Leipzig,1.9,0.8,Heidenheim
+2025-02-23,Bayern Munich,3.8,0.5,Eint Frankfurt
+2025-02-23,Hoffenheim,1.0,2.1,Stuttgart
+,,,,
+2025-02-28,Stuttgart,0.9,2.2,Bayern Munich
+2025-03-01,Werder Bremen,1.9,0.9,Wolfsburg
+2025-03-01,RB Leipzig,1.4,1.5,Mainz 05
+2025-03-01,Heidenheim,1.6,1.8,Gladbach
+2025-03-01,Bochum,0.9,0.6,Hoffenheim
+2025-03-01,St. Pauli,0.4,1.5,Dortmund
+2025-03-01,Eint Frankfurt,1.1,2.0,Leverkusen
+2025-03-02,Union Berlin,1.2,1.0,Holstein Kiel
+2025-03-02,Augsburg,1.5,0.8,Freiburg
+,,,,
+2025-03-07,Gladbach,1.4,1.5,Mainz 05
+2025-03-08,Leverkusen,1.6,1.1,Werder Bremen
+2025-03-08,Bayern Munich,2.4,1.1,Bochum
+2025-03-08,Holstein Kiel,1.4,0.8,Stuttgart
+2025-03-08,Wolfsburg,2.0,1.5,St. Pauli
+2025-03-08,Dortmund,1.2,0.2,Augsburg
+2025-03-08,Freiburg,0.5,1.5,RB Leipzig
+2025-03-09,Eint Frankfurt,1.8,0.9,Union Berlin
+2025-03-09,Hoffenheim,1.3,1.2,Heidenheim
+,,,,
+2025-03-14,St. Pauli,2.0,0.2,Hoffenheim
+2025-03-15,Union Berlin,0.7,1.6,Bayern Munich
+2025-03-15,Werder Bremen,2.5,2.4,Gladbach
+2025-03-15,Mainz 05,1.3,3.1,Freiburg
+2025-03-15,Augsburg,0.7,0.8,Wolfsburg
+2025-03-15,RB Leipzig,1.8,3.0,Dortmund
+2025-03-16,Bochum,1.4,2.5,Eint Frankfurt
+2025-03-16,Heidenheim,1.5,1.5,Holstein Kiel
+2025-03-16,Stuttgart,2.3,1.7,Leverkusen
+,,,,
+2025-03-28,Leverkusen,2.0,0.5,Bochum
+2025-03-29,Hoffenheim,1.4,0.6,Augsburg
+2025-03-29,Holstein Kiel,0.5,1.8,Werder Bremen
+2025-03-29,Gladbach,1.8,1.3,RB Leipzig
+2025-03-29,Bayern Munich,3.5,1.0,St. Pauli
+2025-03-29,Wolfsburg,1.3,1.3,Heidenheim
+2025-03-29,Eint Frankfurt,3.7,1.2,Stuttgart
+2025-03-30,Freiburg,1.4,1.0,Union Berlin
+2025-03-30,Dortmund,2.8,0.8,Mainz 05
+,,,,
+2025-04-04,Augsburg,0.4,2.4,Bayern Munich
+2025-04-05,Mainz 05,1.8,0.9,Holstein Kiel
+2025-04-05,RB Leipzig,1.6,0.9,Hoffenheim
+2025-04-05,Freiburg,1.8,3.3,Dortmund
+2025-04-05,Bochum,0.8,2.8,Stuttgart
+2025-04-05,Heidenheim,1.0,0.4,Leverkusen
+2025-04-05,Werder Bremen,1.0,0.5,Eint Frankfurt
+2025-04-06,St. Pauli,1.9,0.6,Gladbach
+2025-04-06,Union Berlin,1.2,1.9,Wolfsburg
+,,,,
+2025-04-11,Wolfsburg,1.6,1.3,RB Leipzig
+2025-04-12,Hoffenheim,1.7,1.2,Mainz 05
+2025-04-12,Gladbach,0.7,1.6,Freiburg
+2025-04-12,Bochum,2.8,1.1,Augsburg
+2025-04-12,Leverkusen,0.8,0.5,Union Berlin
+2025-04-12,Holstein Kiel,0.5,1.2,St. Pauli
+2025-04-12,Bayern Munich,2.3,1.6,Dortmund
+2025-04-13,Stuttgart,1.7,1.5,Werder Bremen
+2025-04-13,Eint Frankfurt,3.7,1.7,Heidenheim
+,,,,
+2025-04-19,RB Leipzig,1.9,0.8,Holstein Kiel
+2025-04-19,Freiburg,1.3,1.5,Hoffenheim
+2025-04-19,Werder Bremen,1.8,0.7,Bochum
+2025-04-19,Heidenheim,0.6,3.2,Bayern Munich
+2025-04-19,Mainz 05,2.7,1.6,Wolfsburg
+2025-04-19,Union Berlin,1.3,0.9,Stuttgart
+2025-04-20,Augsburg,0.9,1.1,Eint Frankfurt
+2025-04-20,Dortmund,1.4,1.4,Gladbach
+2025-04-20,St. Pauli,1.1,0.8,Leverkusen
+,,,,
+2025-04-25,Stuttgart,1.8,0.3,Heidenheim
+2025-04-26,Hoffenheim,1.1,2.6,Dortmund
+2025-04-26,Bayern Munich,1.1,0.7,Mainz 05
+2025-04-26,Leverkusen,0.9,0.7,Augsburg
+2025-04-26,Holstein Kiel,3.5,1.6,Gladbach
+2025-04-26,Wolfsburg,0.3,1.6,Freiburg
+2025-04-26,Eint Frankfurt,2.1,0.4,RB Leipzig
+2025-04-27,Bochum,1.5,0.3,Union Berlin
+2025-04-27,Werder Bremen,1.1,0.6,St. Pauli
+,,,,
+2025-05-02,Heidenheim,0.7,1.3,Bochum
+2025-05-03,St. Pauli,0.4,2.7,Stuttgart
+2025-05-03,Gladbach,1.4,1.8,Hoffenheim
+2025-05-03,RB Leipzig,1.2,1.6,Bayern Munich
+2025-05-03,Union Berlin,1.5,1.6,Werder Bremen
+2025-05-03,Dortmund,2.4,0.7,Wolfsburg
+2025-05-04,Augsburg,3.2,1.7,Holstein Kiel
+2025-05-04,Freiburg,0.9,0.3,Leverkusen
+2025-05-04,Mainz 05,1.4,1.3,Eint Frankfurt
+,,,,
+2025-05-09,Wolfsburg,1.0,1.4,Hoffenheim
+2025-05-10,Bochum,0.9,1.5,Mainz 05
+2025-05-10,Werder Bremen,2.0,1.7,RB Leipzig
+2025-05-10,Holstein Kiel,1.0,1.4,Freiburg
+2025-05-10,Union Berlin,0.5,1.1,Heidenheim
+2025-05-10,Bayern Munich,2.5,1.6,Gladbach
+2025-05-11,Leverkusen,2.2,1.2,Dortmund
+2025-05-11,Eint Frankfurt,1.7,0.8,St. Pauli
+2025-05-11,Stuttgart,3.9,0.5,Augsburg
+,,,,
+2025-05-17,RB Leipzig,1.1,2.6,Stuttgart
+2025-05-17,Gladbach,1.0,1.7,Wolfsburg
+2025-05-17,Heidenheim,1.6,2.2,Werder Bremen
+2025-05-17,St. Pauli,0.8,1.3,Bochum
+2025-05-17,Freiburg,0.7,2.0,Eint Frankfurt
+2025-05-17,Augsburg,1.7,0.8,Union Berlin
+2025-05-17,Mainz 05,3.1,1.2,Leverkusen
+2025-05-17,Dortmund,2.4,0.8,Holstein Kiel
+2025-05-17,Hoffenheim,0.4,1.4,Bayern Munich
