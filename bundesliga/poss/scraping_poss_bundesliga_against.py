@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import time
 
-URL = "https://fbref.com/en/squads/a224b06a/2024-2025/matchlogs/c20/possession/Mainz-05-Match-Logs-Bundesliga"
+URL = "https://fbref.com/en/squads/2ac661d9/2024-2025/matchlogs/c20/possession/Holstein-Kiel-Match-Logs-Bundesliga"
 
 def scrape_against_possession():
     with sync_playwright() as p:
@@ -15,13 +15,13 @@ def scrape_against_possession():
 
         page.goto(URL, timeout=10000)
 
-        # Klik tab "Against Mainz 05"
-        tab = page.locator("a.sr_preset", has_text="Against Mainz 05")
+        # Klik tab "Against Holstein Kiel"
+        tab = page.locator("a.sr_preset", has_text="Against Holstein Kiel")
         if tab.count() == 0:
-            tab = page.locator("text=Against Mainz 05")
+            tab = page.locator("text=Against Holstein Kiel")
 
         if tab.count() == 0:
-            print("Tab 'Against Mainz 05' tidak ditemukan.")
+            print("Tab 'Against Holstein Kiel' tidak ditemukan.")
             page.screenshot(path="debug_no_tab.png")
             open("debug_no_tab.html", "w", encoding="utf-8").write(page.content())
             browser.close()
@@ -29,7 +29,7 @@ def scrape_against_possession():
 
         tab.scroll_into_view_if_needed()
         tab.click(force=True)
-        print("Tab 'Against Mainz 05' diklik")
+        print("Tab 'Against Holstein Kiel' diklik")
         time.sleep(0.5)
 
         try:

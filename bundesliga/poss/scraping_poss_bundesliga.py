@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import pandas as pd
 
-URL = "https://fbref.com/en/squads/a224b06a/2024-2025/matchlogs/c20/possession/Mainz-05-Match-Logs-Bundesliga"
+URL = "https://fbref.com/en/squads/2ac661d9/2024-2025/matchlogs/c20/possession/Holstein-Kiel-Match-Logs-Bundesliga"
 
 def scrape_team_possession():
     with sync_playwright() as p:
