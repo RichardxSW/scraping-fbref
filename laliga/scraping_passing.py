@@ -2,7 +2,7 @@ from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 import pandas as pd
 
-URL = "https://fbref.com/en/squads/17859612/2024-2025/matchlogs/c12/passing/Valladolid-Match-Logs-La-Liga"
+URL = "https://fbref.com/en/squads/054efa67/2024-2025/matchlogs/c20/passing/Bayern-Munich-Match-Logs-Bundesliga"
 
 def scrape_team_possession():
     with sync_playwright() as p:
@@ -67,9 +67,9 @@ def scrape_team_possession():
         browser.close()
 
     df = pd.DataFrame(data)
-    df.to_csv("laliga/pass/barcelona_pass.csv", index=False)
+    df.to_csv("bundesliga/pass/bundesliga_pass.csv", index=False)
     print(df.head())
-    print(f"Total {len(df)} baris data possession per match disimpan ke barcelona_pass.csv")
+    print(f"Total {len(df)} baris data possession per match disimpan ke bundesliga_pass.csv")
 
 if __name__ == "__main__":
     scrape_team_possession()
