@@ -5,12 +5,12 @@ import random
 import numpy as np
 
 # ========= PARAMETER =========
-FILE_PATH = "data_laliga.xlsx"   # ganti sesuai file Excel
+FILE_PATH = "data_premier.xlsx"   # ganti sesuai file Excel
 SKIP_TOP_ROWS = 0
 K_MIN, K_MAX = 2, 10           # range K untuk elbow method
 MAX_ITER = 200
 TOL = 1e-6
-NORMALIZATION_MODE = "minmax"     # "minmax", "zscore", atau "l2"
+NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
 
 # ========= FUNGSI UTIL =========
 def euclidean(a, b):
