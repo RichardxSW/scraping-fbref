@@ -7,10 +7,11 @@ import numpy as np
 # ========= PARAMETER =========
 FILE_PATH = "data_premier.xlsx"   # ganti sesuai file Excel
 SKIP_TOP_ROWS = 0
-K_MIN, K_MAX = 2, 10           # range K untuk elbow method
+K_MIN, K_MAX = 2, 8         # range K untuk elbow method
 MAX_ITER = 200
 TOL = 1e-6
-NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
+NORMALIZATION_MODE = "minmax"     # "minmax", "zscore", atau "l2"
+# NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
 
 # ========= FUNGSI UTIL =========
 def euclidean(a, b):
@@ -19,12 +20,39 @@ def euclidean(a, b):
 def compute_wcss(X, labels, centroids):
     return sum(euclidean(X[i], centroids[labels[i]])**2 for i in range(len(X)))
 
+def init_centroids_kmeanspp(X, k):
+    n = len(X)
+    centroids = []
+    # pilih centroid pertama random
+    first_idx = random.randrange(n)
+    centroids.append(X[first_idx])
+
+    for _ in range(1, k):
+        # hitung jarak minimum tiap titik ke centroid terdekat
+        dists = []
+        for x in X:
+            dist_sq = min(euclidean(x, c) ** 2 for c in centroids)
+            dists.append(dist_sq)
+
+        # probabilitas proporsional terhadap kuadrat jarak
+        probs = [d / sum(dists) for d in dists]
+        cumprobs = np.cumsum(probs)
+
+        r = random.random()
+        for i, p in enumerate(cumprobs):
+            if r < p:
+                centroids.append(X[i])
+                break
+
+    return centroids
+
 # ========= KMEANS UTAMA =========
 def kmeans_manual_iter(X, teams, k, max_iter=MAX_ITER, tol=TOL, verbose=True):
     n = len(X)
-    # init_indices = list(range(k))
-    init_indices = random.sample(range(n), k)
+    init_indices = list(range(k))
+    # init_indices = random.sample(range(n), k)
     centroids = [X[i] for i in init_indices]
+    # centroids = init_centroids_kmeanspp(X, k) 
     labels_old = [-1] * n
 
     for it in range(1, max_iter + 1):
