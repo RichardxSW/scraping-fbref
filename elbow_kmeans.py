@@ -7,10 +7,10 @@ import numpy as np
 # ========= PARAMETER =========
 FILE_PATH = "data_premier.xlsx"   # ganti sesuai file Excel
 SKIP_TOP_ROWS = 0
-K_MIN, K_MAX = 2, 8         # range K untuk elbow method
+K_MIN, K_MAX = 2, 10         # range K untuk elbow method
 MAX_ITER = 200
 TOL = 1e-6
-NORMALIZATION_MODE = "minmax"     # "minmax", "zscore", atau "l2"
+NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
 # NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
 
 # ========= FUNGSI UTIL =========
@@ -23,9 +23,12 @@ def compute_wcss(X, labels, centroids):
 def init_centroids_kmeanspp(X, k):
     n = len(X)
     centroids = []
+    chosen_idx = []
     # pilih centroid pertama random
-    first_idx = random.randrange(n)
+    # first_idx = random.randrange(n)
+    first_idx=0
     centroids.append(X[first_idx])
+    chosen_idx.append(first_idx)
 
     for _ in range(1, k):
         # hitung jarak minimum tiap titik ke centroid terdekat
@@ -42,18 +45,34 @@ def init_centroids_kmeanspp(X, k):
         for i, p in enumerate(cumprobs):
             if r < p:
                 centroids.append(X[i])
+                chosen_idx.append(i)
                 break
 
-    return centroids
+    print("\nCentroid awal hasil KMeans++:")
+    for idx in chosen_idx:
+        formatted = [f"{val:.4f}" for val in X[idx]]
+        print(f"Index {idx+1} -> {formatted}")
+
+    return centroids, chosen_idx
 
 # ========= KMEANS UTAMA =========
-def kmeans_manual_iter(X, teams, k, max_iter=MAX_ITER, tol=TOL, verbose=True):
+def kmeans_manual_iter(X, teams, k, feature_names=None, max_iter=MAX_ITER, tol=TOL, verbose=True):
     n = len(X)
-    init_indices = list(range(k))
+    # init_indices = list(range(k))
     # init_indices = random.sample(range(n), k)
-    centroids = [X[i] for i in init_indices]
-    # centroids = init_centroids_kmeanspp(X, k) 
+    # init_indices=[0, 15, 18]
+    # centroids = [X[i] for i in init_indices]
+    centroids, init_indices = init_centroids_kmeanspp(X, k) 
     labels_old = [-1] * n
+
+    # === Print centroid awal ===
+    # print("\n=== Centroid Awal ===")
+    # for idx, c in enumerate(centroids):
+    #     rounded = [round(float(v), 4) for v in c]
+    #     if init_indices is not None:   # kalau manual
+    #         print(f"Centroid {idx+1} (dari data index {init_indices[idx]}): {rounded}")
+    #     else:  # kalau kmeans++
+    #         print(f"Centroid {idx+1}: {rounded}")
 
     for it in range(1, max_iter + 1):
         labels = []
@@ -77,11 +96,13 @@ def kmeans_manual_iter(X, teams, k, max_iter=MAX_ITER, tol=TOL, verbose=True):
 
         if verbose:
             print(f"\n=== Iterasi {it} ===")
-            df_iter = pd.DataFrame(X, columns=[f"Feature{i+1}" for i in range(X.shape[1])])
+            # df_iter = pd.DataFrame(X, columns=[f"Feature{i+1}" for i in range(X.shape[1])])
+            colnames = feature_names if feature_names is not None else [f"Feature{i+1}" for i in range(X.shape[1])]
+            df_iter = pd.DataFrame(X, columns=colnames)
             if teams is not None:
                 df_iter["Team"] = teams
             df_iter["Cluster"] = [lbl+1 for lbl in labels]
-            print(df_iter.to_string(index=False))
+            print(df_iter.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
 
             print("\nCentroids:")
             for idx, c in enumerate(new_centroids):
@@ -127,13 +148,34 @@ def silhouette_scores(X, labels):
         scores.append(s)
     return scores
 
-# ========= BACA & NORMALISASI DATA =========
-df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS)
+# ========= BACA & NORMALISASI DATA (versi udh dirata rata)=========
+# df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS)
+# teams = df.iloc[:, 0].astype(str)
+# num = df.iloc[:, 1:9].apply(pd.to_numeric, errors='coerce')
+# mask = num.notnull().all(axis=1)
+# teams = teams[mask].reset_index(drop=True)
+# X = num[mask].to_numpy()
+
+# ========= BACA & NORMALISASI DATA (versi raw) =========
+df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match")
+
+# ambil kolom: 0 = Team, sisanya = statistik (misalnya 8 kolom)
 teams = df.iloc[:, 0].astype(str)
-num = df.iloc[:, 1:11].apply(pd.to_numeric, errors='coerce')
+num = df.iloc[:, 1:10].apply(pd.to_numeric, errors='coerce')
+
+# hanya ambil baris valid (tanpa NaN)
 mask = num.notnull().all(axis=1)
-teams = teams[mask].reset_index(drop=True)
-X = num[mask].to_numpy()
+df = df[mask].reset_index(drop=True)
+
+# groupby berdasarkan Team lalu rata-rata
+# df_grouped = df.groupby(df.iloc[:,0]).mean().reset_index()
+df_grouped = df.groupby(df.columns[0], as_index=False).mean()
+
+# ambil nama tim
+teams = df_grouped.iloc[:, 0].astype(str)
+
+# ambil fitur numerik
+X = df_grouped.iloc[:, 1:].to_numpy()
 
 if NORMALIZATION_MODE == "minmax":
     mins = X.min(axis=0)
@@ -158,9 +200,30 @@ else:
 
 # ========= ELBOW METHOD =========
 wcss_list = []
+diff_list = []
+
 for k in range(K_MIN, K_MAX + 1):
     wcss = kmeans_wcss(Xn, k)
     wcss_list.append(wcss)
+    if len(wcss_list) > 1:
+        diff_list.append(wcss_list[-2] - wcss_list[-1])
+    else:
+        diff_list.append(0)  # selisih pertama ga ada
+
+# Buat dataframe hasil
+df_wcss = pd.DataFrame({
+    "K": list(range(K_MIN, K_MAX + 1)),
+    "WCSS": [round(w, 4) for w in wcss_list],
+    "Diff": [round(d, 4) for d in diff_list]
+})
+
+print("\n=== Hasil WCSS & Selisih ===")
+print(df_wcss.to_string(index=False))
+
+# Cari selisih terbesar (abaikan None di index pertama)
+max_diff_idx = np.argmax(diff_list[1:]) + 1
+K_optimal = df_wcss.iloc[max_diff_idx]["K"]
+print(f"\nK optimal (berdasarkan selisih WCSS terbesar) = {int(K_optimal)}")
 
 plt.figure(figsize=(8,5))
 plt.plot(range(K_MIN, K_MAX+1), wcss_list, marker='o')
@@ -171,10 +234,10 @@ plt.grid(True)
 plt.show()
 
 # ========= INPUT K OPTIMAL =========
-K_optimal = int(input("Masukkan jumlah cluster optimal (K) dari grafik: "))
+# K_optimal = int(input("Masukkan jumlah cluster optimal (K) dari grafik: "))
 
 # ========= JALANKAN K-MEANS FINAL =========
-labels, centroids, wcss = kmeans_manual_iter(Xn, teams, K_optimal, verbose=True)
+labels, centroids, wcss = kmeans_manual_iter(Xn, teams, int(K_optimal), feature_names=df_grouped.columns[1:], verbose=True)
 
 # ========= TAMPILKAN SILHOUETTE SCORE =========
 scores = silhouette_scores(Xn, labels)
