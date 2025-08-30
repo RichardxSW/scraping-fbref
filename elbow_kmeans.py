@@ -77,11 +77,14 @@ def kmeans_manual_iter(X, teams, k, feature_names=None, max_iter=MAX_ITER, tol=T
     for it in range(1, max_iter + 1):
         labels = []
         clusters = [[] for _ in range(k)]
+        all_dists = []
+
         for x in X:
             dists = [euclidean(x, c) for c in centroids]
             cid = dists.index(min(dists))
             labels.append(cid)
             clusters[cid].append(x)
+            all_dists.append(dists)
 
         # update centroid
         new_centroids = []
@@ -97,12 +100,10 @@ def kmeans_manual_iter(X, teams, k, feature_names=None, max_iter=MAX_ITER, tol=T
         if verbose:
             print(f"\n=== Iterasi {it} ===")
             # df_iter = pd.DataFrame(X, columns=[f"Feature{i+1}" for i in range(X.shape[1])])
-            colnames = feature_names if feature_names is not None else [f"Feature{i+1}" for i in range(X.shape[1])]
-            df_iter = pd.DataFrame(X, columns=colnames)
-            if teams is not None:
-                df_iter["Team"] = teams
-            df_iter["Cluster"] = [lbl+1 for lbl in labels]
-            print(df_iter.to_string(index=False, float_format=lambda x: f"{x:.4f}"))
+            for i, dists in enumerate(all_dists):
+                team_name = teams.iloc[i] if teams is not None else f"Data {i+1}"
+                dist_str = ", ".join([f"{dist:.4f}" for dist in dists])
+                print(f"{team_name}: [{dist_str}] -> Cluster {labels[i]+1}")
 
             print("\nCentroids:")
             for idx, c in enumerate(new_centroids):
@@ -113,6 +114,7 @@ def kmeans_manual_iter(X, teams, k, feature_names=None, max_iter=MAX_ITER, tol=T
             if verbose:
                 print("\nCluster tidak berubah lagi. Iterasi selesai.")
             break
+
         labels_old = labels
         centroids = new_centroids
 
@@ -149,33 +151,33 @@ def silhouette_scores(X, labels):
     return scores
 
 # ========= BACA & NORMALISASI DATA (versi udh dirata rata)=========
-# df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS)
-# teams = df.iloc[:, 0].astype(str)
-# num = df.iloc[:, 1:9].apply(pd.to_numeric, errors='coerce')
-# mask = num.notnull().all(axis=1)
-# teams = teams[mask].reset_index(drop=True)
-# X = num[mask].to_numpy()
+df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Mean", nrows=10)
+teams = df.iloc[:, 0].astype(str)
+num = df.iloc[:, 1:7].apply(pd.to_numeric, errors='coerce')
+mask = num.notnull().all(axis=1)
+teams = teams[mask].reset_index(drop=True)
+X = num[mask].to_numpy()
 
 # ========= BACA & NORMALISASI DATA (versi raw) =========
-df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match")
+# df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match", nrows=10)
 
-# ambil kolom: 0 = Team, sisanya = statistik (misalnya 8 kolom)
-teams = df.iloc[:, 0].astype(str)
-num = df.iloc[:, 1:10].apply(pd.to_numeric, errors='coerce')
+# # ambil kolom: 0 = Team, sisanya = statistik (misalnya 8 kolom)
+# teams = df.iloc[:, 0].astype(str)
+# num = df.iloc[:, 1:9].apply(pd.to_numeric, errors='coerce')
 
-# hanya ambil baris valid (tanpa NaN)
-mask = num.notnull().all(axis=1)
-df = df[mask].reset_index(drop=True)
+# # hanya ambil baris valid (tanpa NaN)
+# mask = num.notnull().all(axis=1)
+# df = df[mask].reset_index(drop=True)
 
-# groupby berdasarkan Team lalu rata-rata
-# df_grouped = df.groupby(df.iloc[:,0]).mean().reset_index()
-df_grouped = df.groupby(df.columns[0], as_index=False).mean()
+# # groupby berdasarkan Team lalu rata-rata
+# # df_grouped = df.groupby(df.iloc[:,0]).mean().reset_index()
+# df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:9]].mean()
 
-# ambil nama tim
-teams = df_grouped.iloc[:, 0].astype(str)
+# # ambil nama tim
+# teams = df_grouped.iloc[:, 0].astype(str)
 
-# ambil fitur numerik
-X = df_grouped.iloc[:, 1:].to_numpy()
+# # ambil fitur numerik
+# X = df_grouped.iloc[:, 1:].to_numpy()
 
 if NORMALIZATION_MODE == "minmax":
     mins = X.min(axis=0)
@@ -237,7 +239,8 @@ plt.show()
 # K_optimal = int(input("Masukkan jumlah cluster optimal (K) dari grafik: "))
 
 # ========= JALANKAN K-MEANS FINAL =========
-labels, centroids, wcss = kmeans_manual_iter(Xn, teams, int(K_optimal), feature_names=df_grouped.columns[1:], verbose=True)
+# labels, centroids, wcss = kmeans_manual_iter(Xn, teams, int(K_optimal), feature_names=df_grouped.columns[1:], verbose=True)
+labels, centroids, wcss = kmeans_manual_iter(Xn, teams, int(K_optimal), verbose=True)
 
 # ========= TAMPILKAN SILHOUETTE SCORE =========
 scores = silhouette_scores(Xn, labels)
