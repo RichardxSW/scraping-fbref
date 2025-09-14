@@ -13,6 +13,10 @@ TOL = 1e-6
 NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
 # NORMALIZATION_MODE = "l2"     # "minmax", "zscore", atau "l2"
 
+# [NEW] MODE INISIALISASI CENTROID
+INIT_MODE = "manual"  # "kmeans++" atau "manual"
+INIT_INDICES_1BASED = [1, 3, 5]  # centroid awal dari baris data ke-1,3,5 (1-based)
+
 # ========= FUNGSI UTIL =========
 def euclidean(a, b):
     return math.sqrt(sum((a[i] - b[i])**2 for i in range(len(a))))
@@ -55,14 +59,39 @@ def init_centroids_kmeanspp(X, k):
 
     return centroids, chosen_idx
 
+# [NEW] Inisialisasi centroid manual
+def init_centroids_manual(X, indices_0based):
+    n = len(X)
+    for i in indices_0based:
+        if i < 0 or i >= n:
+            raise ValueError(f"Indeks manual di luar rentang data: {i+1} (1-based).")
+    centroids = [X[i] for i in indices_0based]
+    print("\nCentroid awal (MANUAL):")
+    for i in indices_0based:
+        formatted = [f"{val:.4f}" for val in X[i]]
+        print(f"Index {i+1} -> {formatted}")
+    return centroids, indices_0based
+
 # ========= KMEANS UTAMA =========
-def kmeans_manual_iter(X, teams, k, feature_names=None, max_iter=MAX_ITER, tol=TOL, verbose=True):
+def kmeans_manual_iter(X, teams, k, feature_names=None, max_iter=MAX_ITER, tol=TOL, verbose=True
+                       , init_mode="kmeans++", init_indices_0based=None  # [NEW]
+                       ):
     n = len(X)
     # init_indices = list(range(k))
     # init_indices = random.sample(range(n), k)
     # init_indices=[0, 15, 18]
     # centroids = [X[i] for i in init_indices]
-    centroids, init_indices = init_centroids_kmeanspp(X, k) 
+
+    # [NEW] pilih mode inisialisasi
+    if init_mode == "manual":
+        if init_indices_0based is None:
+            raise ValueError("init_indices_0based wajib diisi untuk init_mode='manual'")
+        if len(init_indices_0based) != k:
+            raise ValueError(f"Jumlah init indices ({len(init_indices_0based)}) != k ({k})")
+        centroids, init_indices = init_centroids_manual(X, init_indices_0based)
+    else:
+        centroids, init_indices = init_centroids_kmeanspp(X, k)
+
     labels_old = [-1] * n
 
     # === Print centroid awal ===
@@ -160,22 +189,22 @@ X = num[mask].to_numpy()
 
 # ========= BACA & NORMALISASI DATA (versi raw) =========
 # df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match", nrows=10)
-
+#
 # # ambil kolom: 0 = Team, sisanya = statistik (misalnya 8 kolom)
 # teams = df.iloc[:, 0].astype(str)
 # num = df.iloc[:, 1:9].apply(pd.to_numeric, errors='coerce')
-
+#
 # # hanya ambil baris valid (tanpa NaN)
 # mask = num.notnull().all(axis=1)
 # df = df[mask].reset_index(drop=True)
-
+#
 # # groupby berdasarkan Team lalu rata-rata
 # # df_grouped = df.groupby(df.iloc[:,0]).mean().reset_index()
 # df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:9]].mean()
-
+#
 # # ambil nama tim
 # teams = df_grouped.iloc[:, 0].astype(str)
-
+#
 # # ambil fitur numerik
 # X = df_grouped.iloc[:, 1:].to_numpy()
 
@@ -196,6 +225,15 @@ elif NORMALIZATION_MODE == "l2":
     norms = np.linalg.norm(X, axis=1, keepdims=True)
     norms[norms == 0] = 1.0
     Xn = X / norms
+
+elif NORMALIZATION_MODE == "zscore_l2":  # Z-score per kolom → L2 per baris
+    mean = X.mean(axis=0)
+    std = X.std(axis=0)
+    std[std == 0] = 1.0
+    Xz = (X - mean) / std
+    norms = np.linalg.norm(Xz, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0
+    Xn = Xz / norms
 
 else:
     raise ValueError("NORMALIZATION_MODE harus 'minmax', 'zscore', atau 'l2'")
@@ -240,7 +278,23 @@ plt.show()
 
 # ========= JALANKAN K-MEANS FINAL =========
 # labels, centroids, wcss = kmeans_manual_iter(Xn, teams, int(K_optimal), feature_names=df_grouped.columns[1:], verbose=True)
-labels, centroids, wcss = kmeans_manual_iter(Xn, teams, int(K_optimal), verbose=True)
+
+# [NEW] jika INIT_MODE manual, pakai centroid awal dari indeks 1,3,5
+if INIT_MODE == "manual":
+    init_indices_0based = [i - 1 for i in INIT_INDICES_1BASED]  # konversi 1-based -> 0-based
+    K_manual = len(init_indices_0based)
+    labels, centroids, wcss = kmeans_manual_iter(
+        Xn, teams, K_manual,
+        verbose=True,
+        init_mode="manual",
+        init_indices_0based=init_indices_0based
+    )
+else:
+    labels, centroids, wcss = kmeans_manual_iter(
+        Xn, teams, int(K_optimal),
+        verbose=True,
+        init_mode="kmeans++"
+    )
 
 # ========= TAMPILKAN SILHOUETTE SCORE =========
 scores = silhouette_scores(Xn, labels)
