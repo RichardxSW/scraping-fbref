@@ -1,0 +1,286 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
+
+# ========= PARAMETER =========
+FILE_PATH = "data_premier.xlsx"   # ganti sesuai file Excel
+SKIP_TOP_ROWS = 0
+K_MIN, K_MAX = 2, 10              # range K untuk elbow method
+
+# Normalisasi / Standarisasi
+# Pilihan: "minmax", "zscore", "l2", "zscore_l2", "robust", "robust_l2"
+# Rekomendasi: "zscore" untuk PCA + KMeans; "robust/robust_l2" jika banyak outlier
+NORMALIZATION_MODE = "robust_l2"
+
+# PCA control (paksa 2D untuk visual)
+USE_PCA = True
+PCA_N_COMPONENTS = 2  # pastikan 2 dimensi
+
+# Berapa kali KMeans diulang untuk mencari solusi terbaik (silhouette tertinggi / no-negative)
+N_RUNS = 20
+
+# ========= BACA DATA (versi RAW → normalize per match → agregasi per tim) =========
+df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match")
+
+teams_col = df.columns[0]
+num_cols = df.columns[1:6]  # <<< atur kolom fitur yang dipakai
+
+# >>> JANGAN HAPUS KODE KOMEN DI BAWAH <<<
+# df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:8]].mean()
+
+# Ambil hanya baris valid (tanpa NaN) pada kolom fitur
+num = df[num_cols].apply(pd.to_numeric, errors='coerce')
+mask = num.notnull().all(axis=1)
+df_valid = df.loc[mask].reset_index(drop=True)
+X_match = df_valid[num_cols].to_numpy()           # data pertandingan (match-level)
+teams_match = df_valid[teams_col].astype(str)     # nama tim per pertandingan
+
+feature_names = list(num_cols)
+
+print("[INFO] Shape X_match (raw per match):", X_match.shape)
+
+# ========= NORMALISASI / STANDARISASI (DI LEVEL MATCH) =========
+# simpan parameter untuk info; inverse ke skala asli tidak akurat setelah agregasi match→tim
+mean = std = mins = maxs = med = iqr = None
+
+if NORMALIZATION_MODE == "minmax":
+    mins = X_match.min(axis=0); maxs = X_match.max(axis=0)
+    den = maxs - mins; den[den == 0] = 1.0
+    Xn_match = (X_match - mins) / den
+
+elif NORMALIZATION_MODE == "zscore":
+    mean = X_match.mean(axis=0); std = X_match.std(axis=0); std[std == 0] = 1.0
+    Xn_match = (X_match - mean) / std
+
+elif NORMALIZATION_MODE == "l2":
+    norms = np.linalg.norm(X_match, axis=1, keepdims=True); norms[norms == 0] = 1.0
+    Xn_match = X_match / norms
+
+elif NORMALIZATION_MODE == "zscore_l2":
+    mean = X_match.mean(axis=0); std = X_match.std(axis=0); std[std == 0] = 1.0
+    Xz = (X_match - mean) / std
+    norms = np.linalg.norm(Xz, axis=1, keepdims=True); norms[norms == 0] = 1.0
+    Xn_match = Xz / norms
+
+elif NORMALIZATION_MODE == "robust":
+    med = np.median(X_match, axis=0)
+    q1 = np.percentile(X_match, 25, axis=0)
+    q3 = np.percentile(X_match, 75, axis=0)
+    iqr = q3 - q1; iqr[iqr == 0] = 1.0
+    Xn_match = (X_match - med) / iqr
+
+elif NORMALIZATION_MODE == "robust_l2":
+    med = np.median(X_match, axis=0)
+    q1 = np.percentile(X_match, 25, axis=0)
+    q3 = np.percentile(X_match, 75, axis=0)
+    iqr = q3 - q1; iqr[iqr == 0] = 1.0
+    Xr = (X_match - med) / iqr
+    norms = np.linalg.norm(Xr, axis=1, keepdims=True); norms[norms == 0] = 1.0
+    Xn_match = Xr / norms
+
+else:
+    raise ValueError("NORMALIZATION_MODE harus salah satu dari: 'minmax','zscore','l2','zscore_l2','robust','robust_l2'")
+
+print("[INFO] Shape Xn_match (normalized per match):", Xn_match.shape)
+
+# ========= AGREGASI KE LEVEL TIM (MEAN dari match yang sudah dinormalisasi) =========
+Xn_match_df = pd.DataFrame(Xn_match, columns=feature_names)
+Xn_match_df[teams_col] = teams_match.values
+
+df_grouped_norm = Xn_match_df.groupby(teams_col, as_index=False)[feature_names].mean()
+teams = df_grouped_norm[teams_col].astype(str)
+X_team = df_grouped_norm[feature_names].to_numpy()
+
+print("[INFO] Shape X_team (mean of normalized matches → per team):", X_team.shape)
+
+# ========= PCA (paksa 2 komponen untuk visual) =========
+if USE_PCA:
+    pca = PCA(n_components=PCA_N_COMPONENTS, svd_solver='full')
+    X_work = pca.fit_transform(X_team)
+    evr = pca.explained_variance_ratio_
+    print("\n=== PCA Info ===")
+    print("Explained variance ratio per komponen:", [f"{v:.4f}" for v in evr])
+    print("Explained variance kumulatif          :", [f"{np.cumsum(evr)[-1]:.4f}"])
+else:
+    X_work = X_team
+
+print("[INFO] Shape X (for clustering):", X_work.shape)
+
+# ========= ELBOW (pilih K dari diff WCSS terbesar) =========
+wcss_list, diff_list = [], []
+for k in range(K_MIN, K_MAX + 1):
+    km_tmp = KMeans(n_clusters=k, init="k-means++", n_init="auto")  # tanpa random_state
+    km_tmp.fit(X_work)
+    wcss_list.append(km_tmp.inertia_)
+    diff_list.append(0 if len(wcss_list) == 1 else (wcss_list[-2] - wcss_list[-1]))
+
+df_wcss = pd.DataFrame({"K": list(range(K_MIN, K_MAX + 1)),
+                        "WCSS": [round(w, 4) for w in wcss_list],
+                        "Diff": [round(d, 4) for d in diff_list]})
+print("\n=== Hasil WCSS & Selisih (Elbow) ===")
+print(df_wcss.to_string(index=False))
+
+max_diff_idx = int(np.argmax(diff_list[1:]) + 1)  # offset
+K_optimal = int(df_wcss.iloc[max_diff_idx]["K"])
+print(f"\nK optimal (selisih WCSS terbesar) = {K_optimal}")
+
+plt.figure(figsize=(8,5))
+plt.plot(range(K_MIN, K_MAX+1), wcss_list, marker='o')
+plt.title(f"Elbow Method ({NORMALIZATION_MODE.upper()} + {'PCA' if USE_PCA else 'No PCA'})")
+plt.xlabel("Jumlah Cluster (k)")
+plt.ylabel("WCSS (inertia)")
+plt.grid(True, ls="--", alpha=0.4)
+plt.show()
+
+# ========= K-MEANS: MULTI-RUN & PILIH TERBAIK (no-negative > rata-rata tertinggi) =========
+best_any = {  # fallback
+    "sil_avg": -1.0,
+    "neg_count": np.inf,
+    "inertia": np.inf,
+    "labels": None,
+    "centroids": None,
+    "sil_samples": None
+}
+best_no_neg = None  # kandidat tanpa silhouette negatif
+
+print(f"\n[SEARCH] Mencari hasil terbaik dari {N_RUNS} run KMeans (init='k-means++', n_init='auto'):")
+for run in range(1, N_RUNS+1):
+    km = KMeans(n_clusters=K_optimal, init="k-means++", n_init="auto")  # tanpa random_state
+    labels_run = km.fit_predict(X_work)
+    sil_samples_run = silhouette_samples(X_work, labels_run)
+    sil_avg_run = silhouette_score(X_work, labels_run)
+    neg_count_run = int(np.sum(sil_samples_run < 0))
+    inertia_run = float(km.inertia_)
+
+    print(f"  Run {run:02d}: sil_avg={sil_avg_run:.4f}, neg_count={neg_count_run}, inertia={inertia_run:.4f}")
+
+    # update best_any
+    better_any = False
+    if sil_avg_run > best_any["sil_avg"]:
+        better_any = True
+    elif np.isclose(sil_avg_run, best_any["sil_avg"], atol=1e-6):
+        if neg_count_run < best_any["neg_count"]:
+            better_any = True
+        elif (neg_count_run == best_any["neg_count"]) and (inertia_run < best_any["inertia"]):
+            better_any = True
+    if better_any:
+        best_any.update({
+            "sil_avg": sil_avg_run,
+            "neg_count": neg_count_run,
+            "inertia": inertia_run,
+            "labels": labels_run,
+            "centroids": km.cluster_centers_,
+            "sil_samples": sil_samples_run
+        })
+
+    # kandidat tanpa silhouette negatif
+    if neg_count_run == 0:
+        if (best_no_neg is None) or (sil_avg_run > best_no_neg["sil_avg"]) or \
+           (np.isclose(sil_avg_run, best_no_neg["sil_avg"], atol=1e-6) and inertia_run < best_no_neg["inertia"]):
+            best_no_neg = {
+                "sil_avg": sil_avg_run,
+                "neg_count": neg_count_run,
+                "inertia": inertia_run,
+                "labels": labels_run,
+                "centroids": km.cluster_centers_,
+                "sil_samples": sil_samples_run
+            }
+
+# Ambil hasil sesuai syarat
+if best_no_neg is not None:
+    selected = best_no_neg
+    print("\n[SELECT] Memilih run DENGAN semua silhouette >= 0 (memenuhi syarat), silhouette rata-rata tertinggi.")
+else:
+    selected = best_any
+    print("\n[WARNING] Tidak ada run dengan semua silhouette >= 0 dalam N_RUNS.")
+    print("          Dipilih fallback: silhouette rata-rata tertinggi, negatif paling sedikit, inertia terkecil.")
+
+labels = selected["labels"]
+centroids_work = selected["centroids"]
+wcss_final = selected["inertia"]
+sil_samples = selected["sil_samples"]
+sil_avg = selected["sil_avg"]
+
+print(f"\n[SUMMARY] Hasil terpilih → Silhouette rata-rata = {sil_avg:.4f}, "
+      f"negatives = {int(np.sum(sil_samples < 0))}, inertia = {wcss_final:.4f}")
+
+# ========= Silhouette =========
+df_result = pd.DataFrame({"Team": teams, "Cluster": labels + 1, "Silhouette": np.round(sil_samples, 4)})
+print("\n=== Hasil Cluster per Tim + Silhouette (SELECTED RUN) ===")
+print(df_result.to_string(index=False))
+print(f"\nSilhouette Score rata-rata = {sil_avg:.4f}")
+
+# ========= Anggota cluster =========
+print("\n=== Anggota Tiap Cluster (indeks 1-based) ===")
+K_opt = len(np.unique(labels))
+for cid in range(K_opt):
+    idxs = np.where(labels == cid)[0]
+    idxs_1b = [int(i+1) for i in idxs]
+    names = [teams.iloc[i] for i in idxs]
+    print(f"Cluster {cid+1}: index={idxs_1b}")
+    print("  Tim:", names)
+
+# ========= Centroid di 2 ruang =========
+print("\n=== CENTROID: RUANG KERJA ===")
+if USE_PCA:
+    for i, c in enumerate(centroids_work):
+        print(f"Cluster {i+1} (PCA): {[round(float(v),4) for v in c]}")
+else:
+    for i, c in enumerate(centroids_work):
+        pretty = ", ".join([f"{f}={v:.4f}" for f, v in zip(feature_names, c)])
+        print(f"Cluster {i+1} (Std/Norm): {pretty}")
+
+# balik ke ruang "agregasi-terstandardisasi" (fitur asli setelah normalisasi per match & agregasi)
+if USE_PCA:
+    centroids_norm = pca.inverse_transform(centroids_work)
+else:
+    centroids_norm = centroids_work.copy()
+
+print("\n=== CENTROID: RUANG TERSTANDARISASI/NORMALISASI (HASIL AGREGASI TIM) ===")
+for i, c in enumerate(centroids_norm):
+    pretty = ", ".join([f"{f}={v:.4f}" for f, v in zip(feature_names, c)])
+    print(f"Cluster {i+1}: {pretty}")
+
+# Catatan inverse ke skala asli:
+# Karena normalisasi dilakukan DI LEVEL MATCH kemudian diagregasi,
+# inverse ke skala asli tidak merekonstruksi mean-stat asli dengan akurat.
+print("\n[INFO] Pipeline ini melakukan normalisasi di level pertandingan, lalu agregasi.")
+print("[INFO] Inverse ke skala ASLI tidak akurat/unik → tidak ditampilkan.")
+
+# ========= SCATTER PLOT (2D) =========
+print("\n[MPL] Scatter plot hasil K-Means...")
+
+coords2d = X_work[:, :2] if X_work.shape[1] >= 2 else X_work
+cents2d  = centroids_work[:, :2] if centroids_work.shape[1] >= 2 else centroids_work
+
+plt.figure(figsize=(8,6))
+K = K_opt
+palette = plt.cm.get_cmap('tab10', K)
+colors = [palette(i) for i in range(K)]
+
+# titik
+for cid in range(K):
+    idxs = np.where(labels == cid)[0]
+    plt.scatter(coords2d[idxs, 0], coords2d[idxs, 1], s=60, alpha=0.85,
+                color=colors[cid], label=f"Cluster {cid+1}")
+
+# anotasi nama tim
+for i, name in enumerate(teams):
+    plt.text(coords2d[i, 0], coords2d[i, 1], f" {name}", fontsize=8, va="center")
+
+# centroid (warna sama)
+for cid in range(K):
+    plt.scatter(cents2d[cid, 0], cents2d[cid, 1], s=260, marker='X',
+                edgecolor='k', linewidths=1.2, color=colors[cid],
+                label=f"Centroid {cid+1}", zorder=5)
+
+plt.title("K-Means Scatter Plot (2D)")
+plt.xlabel("PC1" if USE_PCA else "Dim 1"); plt.ylabel("PC2" if USE_PCA else "Dim 2")
+plt.grid(True, ls="--", alpha=0.4)
+plt.legend()
+plt.tight_layout()
+plt.show()

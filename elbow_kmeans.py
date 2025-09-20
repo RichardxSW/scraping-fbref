@@ -17,7 +17,7 @@ TOL = 1e-6
 # Normalisasi / Standarisasi
 # Pilihan: "minmax", "zscore", "l2", "zscore_l2", "robust"
 # Rekomendasi: "zscore" untuk PCA + KMeans; "robust" jika banyak outlier
-NORMALIZATION_MODE = "l2"
+NORMALIZATION_MODE = "robust_l2"
 
 # (NEW) PCA control
 USE_PCA = True                    # True = aktifkan PCA, False = tidak
@@ -25,7 +25,7 @@ USE_PCA = True                    # True = aktifkan PCA, False = tidak
 # - float di (0,1]: target proporsi varians (mis. 0.95 = 95% varians)
 # - int >= 1: jumlah komponen
 # - None: gunakan seluruh komponen (tidak direduksi)
-PCA_N_COMPONENTS = 0.95
+PCA_N_COMPONENTS = 2
 
 # MODE INISIALISASI CENTROID
 INIT_MODE = "kmeans++"  # "kmeans++" atau "manual"
@@ -233,13 +233,13 @@ def silhouette_scores(X, labels):
 df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match")
 # ambil kolom: 0 = Team, sisanya = statistik (misalnya 8 kolom)
 teams = df.iloc[:, 0].astype(str)
-num = df.iloc[:, 1:8].apply(pd.to_numeric, errors='coerce')
+num = df.iloc[:, 1:7].apply(pd.to_numeric, errors='coerce')
 # hanya ambil baris valid (tanpa NaN)
 mask = num.notnull().all(axis=1)
 df = df[mask].reset_index(drop=True)
 # groupby berdasarkan Team lalu rata-rata
 # df_grouped = df.groupby(df.iloc[:,0]).mean().reset_index()
-df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:8]].mean()
+df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:7]].mean()
 # ambil nama tim
 teams = df_grouped.iloc[:, 0].astype(str)
 # ambil fitur numerik
@@ -284,6 +284,19 @@ elif NORMALIZATION_MODE == "robust":
     iqr[iqr == 0] = 1.0
     Xn = (X - med) / iqr
 
+elif NORMALIZATION_MODE == "robust_l2":
+    med = np.median(X, axis=0)
+    q1 = np.percentile(X, 25, axis=0)
+    q3 = np.percentile(X, 75, axis=0)
+    iqr = q3 - q1
+    iqr[iqr == 0] = 1.0 
+    Xr = (X - med) / iqr
+
+    # L2-normalisasi per baris
+    norms = np.linalg.norm(Xr, axis=1, keepdims=True)
+    norms[norms == 0] = 1.0
+    Xn = Xr / norms
+
 else:
     raise ValueError("NORMALIZATION_MODE harus salah satu dari: 'minmax', 'zscore', 'l2', 'zscore_l2', 'robust'")
 
@@ -303,10 +316,12 @@ if USE_PCA:
 
     # Plot explained variance (opsional)
     plt.figure(figsize=(7,4))
-    plt.plot(range(1, len(evr)+1), cum, marker='o')
-    plt.title("PCA Cumulative Explained Variance")
+    plt.bar(range(1, len(evr)+1), evr, alpha=0.7, label="Per komponen")
+    plt.plot(range(1, len(evr)+1), cum, marker='o', color='red', label="Kumulatif")
+    plt.title("PCA Explained Variance (2 Komponen)")
     plt.xlabel("Komponen ke-")
-    plt.ylabel("Kumulatif Varians")
+    plt.ylabel("Proporsi Varians")
+    plt.legend()
     plt.grid(True, ls="--", alpha=0.4)
     plt.show()
 else:
