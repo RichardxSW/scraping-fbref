@@ -15,8 +15,9 @@ MAX_ITER = 200
 TOL = 1e-6
 
 # Normalisasi / Standarisasi
-# Rekomendasi: "zscore" untuk PCA + KMeans
-NORMALIZATION_MODE = "zscore"     # "minmax", "zscore", "l2", atau "zscore_l2"
+# Pilihan: "minmax", "zscore", "l2", "zscore_l2", "robust"
+# Rekomendasi: "zscore" untuk PCA + KMeans; "robust" jika banyak outlier
+NORMALIZATION_MODE = "l2"
 
 # (NEW) PCA control
 USE_PCA = True                    # True = aktifkan PCA, False = tidak
@@ -42,8 +43,8 @@ def show_init_centroids_table(indices, mode):
     """
     Tampilkan tabel centroid awal dalam skala ASLI (bukan PCA / standar).
     indices: list of 0-based row indices yang dipilih saat init
-    mode: NORMALIZATION_MODE ('zscore' / 'minmax' / lainnya)
-    Menggunakan variabel global: Xn, mean, std, mins, maxs, feature_names
+    mode: NORMALIZATION_MODE ('zscore' / 'minmax' / 'robust' / lainnya)
+    Menggunakan variabel global: Xn, mean, std, mins, maxs, med, iqr, feature_names
     """
     rows = []
     for i in indices:
@@ -53,6 +54,10 @@ def show_init_centroids_table(indices, mode):
             den = (maxs - mins).copy()
             den[den == 0] = 1.0
             orig = Xn[i] * den + mins
+        elif mode == "robust":
+            den = iqr.copy()
+            den[den == 0] = 1.0
+            orig = Xn[i] * den + med
         else:
             # untuk 'l2' atau 'zscore_l2' tidak ada inverse unik -> tampilkan nilai terstandar
             orig = Xn[i]
@@ -217,17 +222,36 @@ def silhouette_scores(X, labels):
     return scores
 
 # ========= BACA DATA (versi sudah dirata-rata) =========
-df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Mean", nrows=20)
+# df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Mean", nrows=20)
+# teams = df.iloc[:, 0].astype str)
+# num = df.iloc[:, 1:8].apply(pd.to_numeric, errors='coerce')
+# mask = num.notnull().all(axis=1)
+# teams = teams[mask].reset_index(drop=True)
+# X = num[mask].to_numpy()
+
+# ========= BACA & NORMALISASI DATA (versi raw) =========
+df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match")
+# ambil kolom: 0 = Team, sisanya = statistik (misalnya 8 kolom)
 teams = df.iloc[:, 0].astype(str)
 num = df.iloc[:, 1:8].apply(pd.to_numeric, errors='coerce')
+# hanya ambil baris valid (tanpa NaN)
 mask = num.notnull().all(axis=1)
-teams = teams[mask].reset_index(drop=True)
-X = num[mask].to_numpy()
+df = df[mask].reset_index(drop=True)
+# groupby berdasarkan Team lalu rata-rata
+# df_grouped = df.groupby(df.iloc[:,0]).mean().reset_index()
+df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:8]].mean()
+# ambil nama tim
+teams = df_grouped.iloc[:, 0].astype(str)
+# ambil fitur numerik
+X = df_grouped.iloc[:, 1:].to_numpy()
 
 # Simpan nama fitur untuk print rapi
 feature_names = df.columns[1:1+X.shape[1]].tolist()
 
 # ========= NORMALISASI / STANDARISASI =========
+# Siapkan variabel global yang mungkin dipakai untuk inverse
+mean = std = mins = maxs = med = iqr = None
+
 if NORMALIZATION_MODE == "minmax":
     mins = X.min(axis=0); maxs = X.max(axis=0)
     den = maxs - mins; den[den == 0] = 1.0
@@ -251,8 +275,17 @@ elif NORMALIZATION_MODE == "zscore_l2":  # Z-score per kolom → L2 per baris
     norms[norms == 0] = 1.0
     Xn = Xz / norms
 
+elif NORMALIZATION_MODE == "robust":
+    # RobustScaler manual: median & IQR (Q3-Q1)
+    med = np.median(X, axis=0)
+    q1 = np.percentile(X, 25, axis=0)
+    q3 = np.percentile(X, 75, axis=0)
+    iqr = q3 - q1
+    iqr[iqr == 0] = 1.0
+    Xn = (X - med) / iqr
+
 else:
-    raise ValueError("NORMALIZATION_MODE harus 'minmax', 'zscore', 'l2', atau 'zscore_l2'")
+    raise ValueError("NORMALIZATION_MODE harus salah satu dari: 'minmax', 'zscore', 'l2', 'zscore_l2', 'robust'")
 
 # ========= (NEW) PCA =========
 if USE_PCA:
@@ -389,6 +422,15 @@ elif NORMALIZATION_MODE == "minmax":
         pretty = ", ".join([f"{fname}={val:.4f}" for fname, val in zip(feature_names, c)])
         print(f"Cluster {idx+1}: {pretty}")
 
+elif NORMALIZATION_MODE == "robust":
+    den = iqr.copy()
+    den[den == 0] = 1.0
+    centroids_orig = centroids_in_norm_space * den + med
+    print("\n=== CENTROID: RUANG ASLI (dari RobustScaler: median & IQR) ===")
+    for idx, c in enumerate(centroids_orig):
+        pretty = ", ".join([f"{fname}={val:.4f}" for fname, val in zip(feature_names, c)])
+        print(f"Cluster {idx+1}: {pretty}")
+
 # ========= SCATTER PLOT HASIL KMEANS =========
 # Kita butuh koordinat 2D untuk plot. Strategi:
 # - Jika ruang kerja (X_for_clustering) punya >=2 dimensi -> pakai dua dimensi pertama.
@@ -414,7 +456,7 @@ def get_viz_coords_and_centroids():
         coords = pca_vis.fit_transform(Xn)
         # proyeksikan centroid ke ruang visualisasi:
         if USE_PCA:
-            # centroids ada di PCA-space (d engan komponen USE_PCA). Kembalikan dulu ke ruang standar, lalu transform
+            # centroids ada di PCA-space (dengan komponen USE_PCA). Kembalikan dulu ke ruang standar, lalu transform
             cents_norm = pca.inverse_transform(np.array(centroids, dtype=float))
         else:
             cents_norm = np.array(centroids, dtype=float)
@@ -428,18 +470,27 @@ coords2d, cents2d, axis_label, source = get_viz_coords_and_centroids()
 plt.figure(figsize=(8,6))
 K = len(set(labels))
 palette = plt.cm.get_cmap('tab10', K)
+colors = [palette(i) for i in range(K)]
 
-# plot titik
+# plot titik per cluster (warna konsisten)
 for cid in range(K):
     idxs = [i for i, lab in enumerate(labels) if lab == cid]
-    plt.scatter(coords2d[idxs, 0], coords2d[idxs, 1], s=60, alpha=0.8, label=f"Cluster {cid+1}", color=palette(cid))
+    plt.scatter(
+        coords2d[idxs, 0], coords2d[idxs, 1],
+        s=60, alpha=0.8, label=f"Cluster {cid+1}", color=colors[cid]
+    )
 
 # anotasi nama tim
 for i, name in enumerate(teams):
     plt.text(coords2d[i, 0], coords2d[i, 1], f" {name}", fontsize=8, va="center")
 
-# plot centroid
-plt.scatter(cents2d[:, 0], cents2d[:, 1], s=220, marker='X', edgecolor='k', linewidths=1.0, label="Centroid")
+# plot centroid: warna sama dengan clusternya
+for cid in range(K):
+    plt.scatter(
+        cents2d[cid, 0], cents2d[cid, 1],
+        s=260, marker='X', edgecolor='k', linewidths=1.2,
+        color=colors[cid], label=f"Centroid {cid+1}", zorder=5
+    )
 
 plt.title(f"K-Means Scatter Plot ({source})")
 plt.xlabel(axis_label[0]); plt.ylabel(axis_label[1])
