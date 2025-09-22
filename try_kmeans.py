@@ -18,6 +18,7 @@ NORMALIZATION_MODE = "robust_l2"
 
 # PCA control (paksa 2D untuk visual)
 USE_PCA = True
+# USE_PCA = False
 PCA_N_COMPONENTS = 2  # pastikan 2 dimensi
 
 # Berapa kali KMeans diulang untuk mencari solusi terbaik (silhouette tertinggi)
@@ -29,7 +30,7 @@ df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Matc
 teams_col = df.columns[0]
 # >>> JANGAN HAPUS KODE KOMEN DI BAWAH <<<
 # df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:8]].mean()
-df_grouped = df.groupby(teams_col, as_index=False)[df.columns[1:5]].mean()
+df_grouped = df.groupby(teams_col, as_index=False)[df.columns[1:7]].mean()
 
 teams = df_grouped.iloc[:, 0].astype(str)
 X = df_grouped.iloc[:, 1:].to_numpy()
@@ -94,6 +95,8 @@ print("[INFO] Shape X (for clustering):", X_work.shape)
 # ========= TENTUKAN K OPTIMAL (Silhouette terbesar) =========
 rows = []
 best_k_record = {"K": None, "sil_avg": -1.0, "labels": None, "centroids": None, "sil_samples": None}
+# --- tambahan: kandidat tanpa silhouette negatif ---
+best_k_no_neg = None  # dict sama struktur di atas, tapi diseleksi dengan syarat semua silhouette >= 0
 
 print("\n[SEARCH-K] Evaluasi K menggunakan Silhouette:")
 for k in range(K_MIN, K_MAX + 1):
@@ -101,7 +104,11 @@ for k in range(K_MIN, K_MAX + 1):
     labels_k = km.fit_predict(X_work)
     sil_samples_k = silhouette_samples(X_work, labels_k)
     sil_avg_k = silhouette_score(X_work, labels_k)
-    rows.append({"K": k, "Silhouette": round(sil_avg_k, 4)})
+    neg_count_k = int(np.sum(sil_samples_k < 0))
+
+    rows.append({"K": k, "Silhouette": round(sil_avg_k, 4), "Negatives": neg_count_k})
+
+    # update best keseluruhan (rata-rata silhouette tertinggi)
     if sil_avg_k > best_k_record["sil_avg"]:
         best_k_record.update({
             "K": k,
@@ -111,17 +118,40 @@ for k in range(K_MIN, K_MAX + 1):
             "sil_samples": sil_samples_k
         })
 
+    # update kandidat tanpa silhouette negatif
+    if neg_count_k == 0:
+        if (best_k_no_neg is None) or (sil_avg_k > best_k_no_neg["sil_avg"]):
+            best_k_no_neg = {
+                "K": k,
+                "sil_avg": sil_avg_k,
+                "labels": labels_k,
+                "centroids": km.cluster_centers_,
+                "sil_samples": sil_samples_k
+            }
+
 df_k = pd.DataFrame(rows)
 print("\n=== Ringkasan Silhouette per K ===")
 print(df_k.to_string(index=False))
 
-K_optimal = best_k_record["K"]
-labels = best_k_record["labels"]
-centroids_work = best_k_record["centroids"]
-sil_samples = best_k_record["sil_samples"]
-sil_avg = best_k_record["sil_avg"]
+# --- prioritas pilih yang TANPA silhouette negatif ---
+if best_k_no_neg is not None:
+    K_optimal = best_k_no_neg["K"]
+    labels = best_k_no_neg["labels"]
+    centroids_work = best_k_no_neg["centroids"]
+    sil_samples = best_k_no_neg["sil_samples"]
+    sil_avg = best_k_no_neg["sil_avg"]
+    print(f"\n[SELECT] Memilih K={K_optimal} dengan syarat semua silhouette >= 0. Silhouette rata-rata = {sil_avg:.4f}")
+else:
+    # fallback ke rata-rata silhouette tertinggi
+    K_optimal = best_k_record["K"]
+    labels = best_k_record["labels"]
+    centroids_work = best_k_record["centroids"]
+    sil_samples = best_k_record["sil_samples"]
+    sil_avg = best_k_record["sil_avg"]
+    print("\n[WARNING] Tidak ada K yang menghasilkan semua silhouette >= 0.")
+    print(f"[FALLBACK] Memilih K={K_optimal} dengan silhouette rata-rata tertinggi = {sil_avg:.4f}")
 
-print(f"\nK optimal (Silhouette) = {K_optimal}, dengan Silhouette rata-rata = {sil_avg:.4f}")
+print(f"\nK optimal (final) = {K_optimal}")
 
 # ========= Silhouette =========
 df_result = pd.DataFrame({"Team": teams, "Cluster": labels + 1, "Silhouette": np.round(sil_samples, 4)})
