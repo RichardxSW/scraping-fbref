@@ -8,7 +8,7 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from matplotlib.patches import Circle
 
 # ========= PARAMETER =========
-FILE_PATH = "data_premier.xlsx"   # ganti sesuai file Excel
+FILE_PATH = "premier.xlsx"   # ganti sesuai file Excel
 SKIP_TOP_ROWS = 0
 K_MIN, K_MAX = 2, 10              # range K untuk evaluasi jumlah cluster
 
@@ -25,12 +25,12 @@ PCA_N_COMPONENTS = 2  # pastikan 2 dimensi
 N_RUNS = 20
 
 # ========= BACA DATA (versi RAW → agregasi per tim) =========
-df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="Match")
+df = pd.read_excel(FILE_PATH, header=0, skiprows=SKIP_TOP_ROWS, sheet_name="clustering")
 
 teams_col = df.columns[0]
 # >>> JANGAN HAPUS KODE KOMEN DI BAWAH <<<
 # df_grouped = df.groupby(df.columns[0], as_index=False)[df.columns[1:8]].mean()
-df_grouped = df.groupby(teams_col, as_index=False)[df.columns[1:5]].mean()
+df_grouped = df.groupby(teams_col, as_index=False)[df.columns[1:9]].mean()
 
 teams = df_grouped.iloc[:, 0].astype(str)
 X = df_grouped.iloc[:, 1:].to_numpy()
