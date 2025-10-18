@@ -1,8 +1,8 @@
 import re
 import pandas as pd
 import numpy as np
-from sklearn.preprocessing import StandardScaler
-from sklearn.cluster import MeanShift
+from sklearn.preprocessing import RobustScaler, StandardScaler
+from sklearn.cluster import KMeans, MeanShift
 from sklearn.metrics import silhouette_score, davies_bouldin_score
 from sklearn.decomposition import PCA
 import matplotlib.pyplot as plt
@@ -13,6 +13,8 @@ import matplotlib.pyplot as plt
 FILE_PATH   = "data.xlsx"      # ganti jika perlu
 SHEET_NAME  = "FWD"            # atau "complete"
 BWS         = np.arange(0.5, 10.5, 0.5)  # 0.5, 1.0, ..., 10.0
+# BWS         = [2.5] # 0.5, 1.0, ..., 10.0
+# BWS         = np.arange(1, 11, 1)  # 0.5, 1.0, ..., 10.0
 
 # daftar eksplisit yang TIDAK ikut clustering (case-insensitive; akan dicocokkan setelah lower())
 EXCLUDE_COLS = [
@@ -97,7 +99,7 @@ if n_samples < 3:
 # =======================================
 # 3) STANDARISASI (Z-SCORE)
 # =======================================
-scaler = StandardScaler()
+scaler = RobustScaler()
 X_std = scaler.fit_transform(X)
 
 # =======================================
@@ -105,6 +107,67 @@ X_std = scaler.fit_transform(X)
 # =======================================
 def valid_for_silhouette(k, n):
     return (k >= 2) and (k <= n - 1)
+
+
+def gaussian_mean_shift_predict(X, bandwidth, max_iter=100, tol=1e-3, merge_thresh=None):
+    """
+    Mean Shift dengan kernel Gaussian (custom).
+    - X: array (n_samples, n_features), sebaiknya sudah distandardisasi (Z-score).
+    - bandwidth (h): radius/scale kernel.
+    - merge_thresh: ambang penggabungan mode; default 0.3*h.
+    Return:
+      labels: np.array shape (n_samples,), label 0..k-1
+      centers: np.array shape (k, n_features), pusat (mode) tiap cluster
+    """
+    X = np.asarray(X, dtype=float)
+    n, d = X.shape
+    if merge_thresh is None:
+        merge_thresh = 0.3 * float(bandwidth)
+
+    # inisialisasi posisi "bergerak" = titik awal
+    Y = X.copy()
+
+    # iterasi geser ke mean tertimbang Gaussian
+    for _ in range(max_iter):
+        Y_old = Y
+        # hitung mean tertimbang untuk setiap titik (O(n^2))
+        # dist2[i, j] = ||Y[i] - X[j]||^2
+        dist2 = np.sum((Y[:, None, :] - X[None, :, :])**2, axis=2)  # (n, n)
+        W = np.exp(-dist2 / (2.0 * (bandwidth**2)))                  # bobot Gaussian
+        # normalisasi bobot per baris
+        W_sum = W.sum(axis=1, keepdims=True) + 1e-12
+        Y = (W @ X) / W_sum
+
+        # cek konvergensi (rata2 pergeseran)
+        shift = np.linalg.norm(Y - Y_old) / n
+        if shift < tol:
+            break
+
+    # gabungkan mode yang berdekatan (clustering mode)
+    centers = []
+    labels = -np.ones(n, dtype=int)
+    for i in range(n):
+        yi = Y[i]
+        assigned = False
+        for c_idx, c in enumerate(centers):
+            if np.linalg.norm(yi - c) <= merge_thresh:
+                labels[i] = c_idx
+                # update center (opsional: incremental mean)
+                centers[c_idx] = (centers[c_idx] + yi) / 2.0
+                assigned = True
+                break
+        if not assigned:
+            centers.append(yi)
+            labels[i] = len(centers) - 1
+
+    centers = np.vstack(centers)
+
+    # rapikan: reindex label jadi 0..k-1 berurutan
+    uniq = np.unique(labels)
+    remap = {old: new for new, old in enumerate(uniq)}
+    labels = np.array([remap[l] for l in labels], dtype=int)
+    return labels, centers
+
 
 results = []
 invalids = []
@@ -114,7 +177,9 @@ fallback = None
 print("\n=== Sweep bandwidth 0.5 .. 10.0 ===")
 for bw in BWS:
     ms = MeanShift(bandwidth=float(bw), bin_seeding=True, cluster_all=True)
+    # ms = KMeans(init='k-means++', n_clusters= bw)
     labels_try = ms.fit_predict(X_std)
+    # labels_try, _ = gaussian_mean_shift_predict(X_std, bandwidth=float(bw), max_iter=100, tol=1e-3, merge_thresh=None)
     k = len(np.unique(labels_try))
 
     # fallback: pilih K yang tidak ekstrem
